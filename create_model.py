@@ -105,10 +105,10 @@ for i in range(len(predictions)):
     cv2.imwrite(os.path.join(output_folder, f"predicted_mask_{i}.png"), predicted_mask)
 
 # Update trained datasets log
-log_file = "trained_datasets.txt"
+log_file = "datasets/trained_datasets.txt"
 with open(log_file, "w") as f:
     for dataset in datasets:
-        f.write(f"{dataset} ✔\n")
+        f.write(f"{dataset}\n")
 
 print(f"Predictions saved in {output_folder}")
 print("Training complete. Trained datasets updated.")
