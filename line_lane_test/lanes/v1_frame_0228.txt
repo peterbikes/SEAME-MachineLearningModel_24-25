@@ -1,2 +1,2 @@
-Left Lane: [[2, 81]]
-Right Lane: [[188, 75], [253, 114]]
+Left Lane: None
+Right Lane: None
