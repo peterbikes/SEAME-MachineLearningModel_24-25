@@ -1,2 +1,0 @@
-Left Lane: None
-Right Lane: None
