@@ -5,6 +5,12 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 
 
+def rdp_simplify(points, epsilon=5.0):
+    """ Apply the Ramer-Douglas-Peucker algorithm to simplify a curve. """
+    points = np.array(points, dtype=np.int32)
+    return cv2.approxPolyDP(points, epsilon, False)[:, 0, :].tolist()
+
+
 def compute_centerline(contour):
     """ Compute the centerline by averaging x-coordinates for each unique y. """
     points = contour[:, 0, :]  # Extract (x, y) pairs
@@ -16,7 +22,8 @@ def compute_centerline(contour):
         avg_x = int(np.mean(x_values))  # Compute the average x
         centerline.append((avg_x, int(y)))
 
-    return centerline
+    # Simplify the lane
+    return rdp_simplify(centerline)
 
 
 def extract_lanes(image_path, model):
