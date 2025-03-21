@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import cv2
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
 
 def rdp_simplify(points, epsilon=5.0):
     """ Apply the Ramer-Douglas-Peucker algorithm to simplify a curve. """
@@ -20,25 +22,24 @@ def compute_centerline(contour):
 
     return rdp_simplify(centerline)
 
-def extract_lanes_from_mask(mask_path):
-    """ Process a pre-generated mask instead of running a neural network. """
-    mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-    if mask is None:
-        print(f"Error: Unable to read mask {mask_path}")
-        return None, None
+def extract_lanes(image_path, model):
+    """ Use the trained model to predict lane masks and extract centerlines. """
+    image = load_img(image_path, target_size=(256, 256))
+    image_array = img_to_array(image) / 255.0  # Normalize to [0, 1]
+    image_array = np.expand_dims(image_array, axis=0)
 
-    # Threshold mask
-    _, binary_mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
-
-    # Find contours
+    predicted_mask = model.predict(image_array)[0]
+    predicted_mask = (predicted_mask * 255).astype(np.uint8)
+    
+    _, binary_mask = cv2.threshold(predicted_mask, 127, 255, cv2.THRESH_BINARY)
+    
     contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = [cnt for cnt in contours if len(cnt) > 1]
     
     if len(contours) < 2:
-        print(f"Warning: Detected less than two lanes in {mask_path}")
+        print(f"Warning: Detected less than two lanes in {image_path}")
         return None, None
     
-    # Sort contours based on x-coordinate
     contours = sorted(contours, key=lambda cnt: np.mean(cnt[:, 0, 0]))
     
     left_lane = contours[0]
@@ -49,20 +50,22 @@ def extract_lanes_from_mask(mask_path):
 
     return left_centerline, right_centerline
 
-def process_masks_in_folder(mask_folder):
+def process_images_in_folder(image_folder, model):
     results = {}
-    for mask_name in os.listdir(mask_folder):
-        if mask_name.endswith(('.jpg', '.png', '.jpeg')):
-            mask_path = os.path.join(mask_folder, mask_name)
-            left_lane, right_lane = extract_lanes_from_mask(mask_path)
-            results[mask_name] = {"left_lane": left_lane, "right_lane": right_lane}
+    for image_name in os.listdir(image_folder):
+        if image_name.endswith(('.jpg', '.png', '.jpeg')):
+            image_path = os.path.join(image_folder, image_name)
+            left_lane, right_lane = extract_lanes(image_path, model)
+            results[image_name] = {"left_lane": left_lane, "right_lane": right_lane}
     return results
 
 if __name__ == "__main__":
-    mask_folder = "masks"  # Folder containing pre-generated segmentation masks
-    lanes = process_masks_in_folder(mask_folder)
+    image_folder = "images"
+    model_path = "unet_lane_detection_model.h5"
+    model = load_model(model_path)
+    lanes = process_images_in_folder(image_folder, model)
 
-    lanes_output_folder = os.path.join(os.path.dirname(mask_folder), "lanes")
+    lanes_output_folder = os.path.join(os.path.dirname(image_folder), "lanes")
     os.makedirs(lanes_output_folder, exist_ok=True)
 
     for img, lane_data in lanes.items():
