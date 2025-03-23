@@ -36,19 +36,16 @@ def extract_lanes(image_path, model):
     contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = [cnt for cnt in contours if len(cnt) > 1]
     
-    if len(contours) < 2:
-        print(f"Warning: Detected less than two lanes in {image_path}")
+    if len(contours) == 0:
+        print(f"Warning: No lanes detected in {image_path}")
         return None, None
     
     contours = sorted(contours, key=lambda cnt: np.mean(cnt[:, 0, 0]))
     
-    left_lane = contours[0]
-    right_lane = contours[-1]
+    left_lane = compute_centerline(contours[0]) if len(contours) > 0 else None
+    right_lane = compute_centerline(contours[-1]) if len(contours) > 1 else None
     
-    left_centerline = compute_centerline(left_lane)
-    right_centerline = compute_centerline(right_lane)
-
-    return left_centerline, right_centerline
+    return left_lane, right_lane
 
 def process_images_in_folder(image_folder, model):
     results = {}
