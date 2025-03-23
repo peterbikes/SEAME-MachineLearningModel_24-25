@@ -1,3 +1,13 @@
+# HOW TO RUN THE MODEL FOR TESTING AND WHATEVER
+
+- First create env for python: `source python_prep.sh`
+- Go to the folder where im testing all this `cd line_lane_test`
+- Load images you want to test with into the "images" directory
+- run `python3 lane_test.py`, this will create a folder called "lanes" with .txt files of the vectors the model created. ultimately these will be ROS2 messages.
+- To error-check the vectors vs the images, run `python3 pic_vs_txt.py` . this creates a folder called "output_images" with all the images with the vectors drawn in them.
+
+
+
 # U-Net - Machine Learning Model Approach
 
 ## Results so far
