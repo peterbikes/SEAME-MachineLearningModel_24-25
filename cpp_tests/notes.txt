@@ -1,0 +1,5 @@
+- the model.onnx sitting in this repo is one downloaded, not ours;
+- the command used to create the file correct.engine:
+sudo /usr/src/tensorrt/bin/trtexec --onnx=model.onnx --saveEngine=correct.engine --best --verbose
+
+ 
