@@ -1,5 +1,8 @@
+# python env
 env/
+
+# model / datasets
 unet_lane_detection_model.h5
 saved_model/
-datasets/
 latest_training_predictions/
+datasets/
