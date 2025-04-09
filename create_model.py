@@ -91,6 +91,7 @@ model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=20, batch_siz
 
 # Save the trained model
 model.save(model_path)
+model.save("saved_model", save_format="tf")
 
 # Evaluate and predict
 val_loss, val_accuracy = model.evaluate(X_val, y_val)
