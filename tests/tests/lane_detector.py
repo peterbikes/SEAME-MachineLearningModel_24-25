@@ -4,10 +4,10 @@ import cv2
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 
 # Load trained model
-model = tf.keras.models.load_model('unet_lane_detection_model.h5')
+model = tf.keras.models.load_model('../unet_lane_detection_model.h5')
 
 # Load and preprocess image
-image_path = 'test2.jpg'
+image_path = 'images/v2_frame_0072.jpg'
 img_size = (256, 256)
 
 image = load_img(image_path, target_size=img_size)
