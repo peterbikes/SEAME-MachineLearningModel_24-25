@@ -3,6 +3,7 @@ env/
 
 # model / datasets
 unet_lane_detection_model.h5
+model.onnx
 saved_model/
 latest_training_predictions/
 datasets/
