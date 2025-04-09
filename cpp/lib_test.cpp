@@ -76,9 +76,9 @@ std::vector<float> loadImage() {
         for (int x = 0; x < resized_img.cols; ++x) {
             cv::Vec3b pixel = resized_img.at<cv::Vec3b>(y, x);
             // Store the pixel data in the og_image vector (RGB channels) --> normalized by dividing by 255
-            og_image[(y * resized_img.cols + x) * 3] = static_cast<float>(pixel[2]) / 255.0f;  // Red channel
+            og_image[(y * resized_img.cols + x) * 3] = static_cast<float>(pixel[0]) / 255.0f;  // Red channel
             og_image[(y * resized_img.cols + x) * 3 + 1] = static_cast<float>(pixel[1]) / 255.0f;  // Green channel
-            og_image[(y * resized_img.cols + x) * 3 + 2] = static_cast<float>(pixel[0]) / 255.0f;  // Blue channel
+            og_image[(y * resized_img.cols + x) * 3 + 2] = static_cast<float>(pixel[2]) / 255.0f;  // Blue channel
         }
     }
 
