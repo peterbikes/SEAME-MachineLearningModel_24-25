@@ -1,0 +1,9 @@
+compile and run :
+
+clear && sudo c++ -std=c++17 -o test_libraries lib_test.cpp -fopenmp `pkg-config --cflags --libs opencv4` -lnvinfer -lcudart -I/usr/include/eigen3 -I/usr/local/cuda/include -L/usr/local/cuda/lib64 -lstdc++fs && sudo ./test_libraries
+
+- Check model's output classes;
+
+check if this is correct: Copies input data from CPU to GPU.
+
+
