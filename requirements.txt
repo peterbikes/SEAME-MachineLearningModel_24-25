@@ -1,6 +1,0 @@
-numpy<2
-tensorflow==2.9
-pillow==9.3.0
-scikit-learn==1.2.1
-opencv-python
-matplotlib==3.6.3
