@@ -1,0 +1,16 @@
+#include <NvInfer.h>
+#include <cuda_runtime_api.h>
+#include <opencv2/opencv.hpp>
+#include <string>
+#include <vector>
+
+const std::string model_path = "correct.engine";
+
+class Logger : public nvinfer1::ILogger
+{
+    public:
+        void log(Severity severity, const char* msg) noexcept override;
+};
+
+void checkEngineSpecs(nvinfer1::ICudaEngine* engine);
+std::vector<float> loadImage();

@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/home/axel/SEAME-MachineLearningModel_24-25/cpp/build",
-  "command": "/usr/bin/c++  -I/usr/local/cuda-10.2/include -I/home/axel/SEAME-MachineLearningModel_24-25/cpp/includes -isystem /usr/local/include/opencv4 -std=gnu++17 -o CMakeFiles/test_libraries.dir/lib_test.cpp.o -c /home/axel/SEAME-MachineLearningModel_24-25/cpp/lib_test.cpp",
-  "file": "/home/axel/SEAME-MachineLearningModel_24-25/cpp/lib_test.cpp"
-}
-]
