@@ -1,4 +1,4 @@
-# HOW TO RUN THE MODEL FOR TESTING AND WHATEVER
+# run the model for testing
 
 - First create env for python: `source python_prep.sh`
 - Go to the folder where im testing all this `cd line_lane_test`
