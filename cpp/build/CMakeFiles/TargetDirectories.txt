@@ -1,3 +1,0 @@
-/home/axel/SEAME-MachineLearningModel_24-25/cpp/build/CMakeFiles/test_libraries.dir
-/home/axel/SEAME-MachineLearningModel_24-25/cpp/build/CMakeFiles/edit_cache.dir
-/home/axel/SEAME-MachineLearningModel_24-25/cpp/build/CMakeFiles/rebuild_cache.dir

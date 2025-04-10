@@ -21,8 +21,13 @@ find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui)
 
 include_directories(includes)
 
+# add_executable(${PROJECT_NAME}
+#   lib_test.cpp
+# )
+
 add_executable(${PROJECT_NAME}
-  lib_test.cpp
+  srcs/main.cpp
+  srcs/utils.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
