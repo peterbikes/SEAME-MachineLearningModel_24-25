@@ -57,11 +57,10 @@ void checkEngineSpecs(nvinfer1::ICudaEngine* engine)
     }
 }
 
-std::vector<float> loadImage()
+std::vector<float> loadImage(const std::string& image_path)
 {
     // IMAGE LOADING/RESIZING PART --> this is now a function
     fs::create_directory("results");
-    std::string image_path = "images/dark_frame_0242.jpg";
     cv::imwrite("results/original_pic.jpg", cv::imread(image_path));
 
     // Load color image

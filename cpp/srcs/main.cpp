@@ -7,6 +7,13 @@ int main(int argc, char** argv)
 {
     Logger logger;
 
+    if (argc < 2)
+    {
+        std::cerr << "provide a path to a picture as argument\n";
+        return -1;
+    }
+    std::string img_path(argv[1]);
+
     std::ifstream file(model_path, std::ios::binary);
     if (!file)
         throw std::runtime_error("Failed to open engine file");
@@ -44,10 +51,13 @@ int main(int argc, char** argv)
         throw std::runtime_error("Failed to create execution context.");
     std::cout << "Execution context created." << std::endl;
 
-    // checkInputDimensions(engine);
-    size_t inputSize =
-        196608; // ->create func for both of this with the information above
-    size_t outputSize = 65536;
+    checkEngineSpecs(engine);
+
+    // WARN: these should be size in byte!! Yes we get 256 x 256 element in the
+    // output, but storing floats, so the size in byte should be 256 * 256 *
+    // sizeof(float)
+    size_t inputSize = 196608;
+    size_t outputSize = 65536 * sizeof(float);
 
     // Allocate memory for input tensor (binding index 0)
     void* inputDevice;
@@ -63,20 +73,15 @@ int main(int argc, char** argv)
             "Failed to allocate device memory for output.");
 
     std::vector<float> og_image;
-    og_image = loadImage();
+    og_image = loadImage(img_path);
 
     // Copy data from host to device for the input
     status = cudaMemcpy(inputDevice, og_image.data(), inputSize,
                         cudaMemcpyHostToDevice);
     if (status != cudaSuccess)
-    {
         throw std::runtime_error(
             "Failed to copy data from host to device for input.");
-    }
     std::cout << "Data copied from host to device." << std::endl;
-
-    // engine info test function below
-    checkEngineSpecs(engine);
 
     // Set up the bindings
     void* bindings[2]; // assuming 2 bindings: input and output
@@ -90,25 +95,16 @@ int main(int argc, char** argv)
     // Run the inference
     bool context_status = context->executeV2(bindings);
     if (!context_status)
-    {
         throw std::runtime_error("Failed to execute inference.");
-    }
     std::cout << "Inference executed successfully." << std::endl;
 
     // Copy data from device to host for the output
     std::vector<float> outputHostData(outputSize / sizeof(float));
-    status = cudaMemcpy(outputHostData.data(), outputDevice, outputSize,
-                        cudaMemcpyDeviceToHost);
+    status = cudaMemcpy(outputHostData.data(), outputDevice,
+                        outputSize / sizeof(float), cudaMemcpyDeviceToHost);
     if (status != cudaSuccess)
-    {
         throw std::runtime_error(
             "Failed to copy data from device to host for output.");
-    }
-    std::cout << "Output data copied from device to host." << std::endl;
-    std::cout << "First 10 output values: ";
-    for (int i = 0; i < 10; ++i)
-        std::cout << outputHostData[i] << " ";
-    std::cout << std::endl;
 
     // Reshape the output into a 2D matrix (same size as input image)
     int outputHeight = 256; // Height of the output mask (same as input image)
