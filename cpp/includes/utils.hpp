@@ -13,4 +13,4 @@ class Logger : public nvinfer1::ILogger
 };
 
 void checkEngineSpecs(nvinfer1::ICudaEngine* engine);
-std::vector<float> loadImage();
+std::vector<float> loadImage(const std::string& img_path);
