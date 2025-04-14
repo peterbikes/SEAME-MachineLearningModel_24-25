@@ -166,7 +166,7 @@ int main()
     std::cout << "Execution context created." << std::endl;
 
     // engine info test function below
-    // checkEngineSpecs(engine);
+    checkEngineSpecs(engine);
 
     // checkInputDimensions(engine);
     size_t inputSize =
@@ -202,9 +202,6 @@ int main()
             "Failed to copy data from host to device for input.");
     }
     std::cout << "Data copied from host to device." << std::endl;
-
-    // engine info test function below
-    checkEngineSpecs(engine);
 
     // Set up the bindings
     void* bindings[2]; // assuming 2 bindings: input and output

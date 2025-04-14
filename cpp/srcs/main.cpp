@@ -14,20 +14,6 @@ int main(int argc, char** argv)
     }
     std::string img_path(argv[1]);
 
-    std::ifstream file(model_path, std::ios::binary);
-    if (!file)
-        throw std::runtime_error("Failed to open engine file");
-    std::cout << "Engine file loaded." << std::endl;
-
-    // seek the end of the file to determine engine size
-    file.seekg(0, std::ios::end);
-    size_t size = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    // create a file to hold engine data
-    std::vector<char> engineData(size);
-    file.read(engineData.data(), size);
-
     // Create TensorRT runtime - to deserealize model and process inference
     nvinfer1::IRuntime* runtime = nvinfer1::createInferRuntime(logger);
     if (!runtime)
@@ -36,9 +22,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    // Deserialize engine
-    nvinfer1::ICudaEngine* engine =
-        runtime->deserializeCudaEngine(engineData.data(), size);
+    nvinfer1::ICudaEngine* engine = createEngine(runtime);
     if (!engine)
     {
         std::cerr << "Error: Failed to deserialize engine" << std::endl;

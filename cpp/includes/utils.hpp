@@ -12,5 +12,6 @@ class Logger : public nvinfer1::ILogger
         void log(Severity severity, const char* msg) noexcept override;
 };
 
+nvinfer1::ICudaEngine* createEngine(nvinfer1::IRuntime* runtime);
 void checkEngineSpecs(nvinfer1::ICudaEngine* engine);
 std::vector<float> loadImage(const std::string& img_path);
