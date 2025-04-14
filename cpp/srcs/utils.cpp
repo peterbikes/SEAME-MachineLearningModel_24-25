@@ -31,6 +31,28 @@ void Logger::log(Severity severity, const char* msg) noexcept
     std::cerr << msg << std::endl;
 }
 
+nvinfer1::ICudaEngine* createEngine(nvinfer1::IRuntime* runtime)
+{
+    std::ifstream file(model_path, std::ios::binary);
+    if (!file)
+    {
+        std::cerr << "Fail to load model: path doesn't exist\n";
+        return nullptr;
+    }
+    std::cout << "Engine file loaded." << std::endl;
+
+    // seek the end of the file to determine engine size
+    file.seekg(0, std::ios::end);
+    size_t size = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    // create a file to hold engine data
+    std::vector<char> engineData(size);
+    file.read(engineData.data(), size);
+
+    return runtime->deserializeCudaEngine(engineData.data(), size);
+}
+
 void checkEngineSpecs(nvinfer1::ICudaEngine* engine)
 {
     int numBindings = engine->getNbBindings();
