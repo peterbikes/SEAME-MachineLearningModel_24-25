@@ -1,4 +1,3 @@
-#include <fstream>
 #include <iostream>
 #include <utils.hpp>
 #include <vector>
@@ -26,117 +25,97 @@ int main(int argc, char** argv)
     if (!engine)
     {
         std::cerr << "Error: Failed to deserialize engine" << std::endl;
+        delete runtime;
         return -1;
     }
     std::cout << "Engine loaded successfully." << std::endl;
 
     nvinfer1::IExecutionContext* context = engine->createExecutionContext();
     if (!context)
-        throw std::runtime_error("Failed to create execution context.");
+    {
+        std::cerr << "Error: Failed to create context\n";
+        delete runtime;
+        delete engine;
+        return -1;
+    }
     std::cout << "Execution context created." << std::endl;
 
     checkEngineSpecs(engine);
 
-    // WARN: these should be size in byte!! Yes we get 256 x 256 element in the
-    // output, but storing floats, so the size in byte should be 256 * 256 *
-    // sizeof(float)
-    size_t inputSize = 196608;
-    size_t outputSize = 65536 * sizeof(float);
+    // Load and preprocess the image
+    std::vector<float> input_data = loadImage(img_path);
 
-    // Allocate memory for input tensor (binding index 0)
-    void* inputDevice;
-    cudaError_t status = cudaMalloc(&inputDevice, inputSize);
-    if (status != cudaSuccess)
-        throw std::runtime_error("Failed to allocate device memory for input.");
+    // Get binding indices
+    const int inputIndex = engine->getBindingIndex("input_1");
+    const int outputIndex = engine->getBindingIndex("conv2d_14");
 
-    // Allocate memory for output tensor (binding index 1)
-    void* outputDevice;
-    status = cudaMalloc(&outputDevice, outputSize);
-    if (status != cudaSuccess)
-        throw std::runtime_error(
-            "Failed to allocate device memory for output.");
+    // Get input and output dimensions
+    nvinfer1::Dims inputDims = engine->getBindingDimensions(inputIndex);
+    nvinfer1::Dims outputDims = engine->getBindingDimensions(outputIndex);
 
-    std::vector<float> og_image;
-    og_image = loadImage(img_path);
+    // WARN: Calculate buffer sizes : the size of the input and output buffer
+    // must be dynamically calulated using binding dimension.... ex: input
+    // tensor is 1 256 256 3 (NHWC). its size has to be N * H * W * C *
+    // sizeof(float) : 256 * 256 element per channel , 3 channel, each element
+    // beeing a float32
+    size_t inputSize = 1;
+    for (int i = 0; i < inputDims.nbDims; i++)
+        inputSize *= inputDims.d[i];
+    inputSize *= sizeof(float);
 
-    // Copy data from host to device for the input
-    status = cudaMemcpy(inputDevice, og_image.data(), inputSize,
-                        cudaMemcpyHostToDevice);
-    if (status != cudaSuccess)
-        throw std::runtime_error(
-            "Failed to copy data from host to device for input.");
-    std::cout << "Data copied from host to device." << std::endl;
+    size_t outputSize = 1;
+    for (int i = 0; i < outputDims.nbDims; i++)
+        outputSize *= outputDims.d[i];
+    outputSize *= sizeof(float);
 
-    // Set up the bindings
-    void* bindings[2]; // assuming 2 bindings: input and output
+    std::cout << "Input size: " << inputSize << " bytes" << std::endl;
+    std::cout << "Output size: " << outputSize << " bytes" << std::endl;
 
-    // Bind input
-    bindings[0] = inputDevice; // inputDevice holds the input data (image)
+    // Allocate GPU memory for input and output
+    void* d_input = nullptr;
+    void* d_output = nullptr;
+    cudaMalloc(&d_input, inputSize);
+    cudaMalloc(&d_output, outputSize);
 
-    // Bind output
-    bindings[1] = outputDevice; // outputDevice will hold the result
+    // Copy input data to GPU
+    cudaMemcpy(d_input, input_data.data(), inputSize, cudaMemcpyHostToDevice);
 
-    // Run the inference
-    bool context_status = context->executeV2(bindings);
-    if (!context_status)
-        throw std::runtime_error("Failed to execute inference.");
-    std::cout << "Inference executed successfully." << std::endl;
+    // Create GPU buffers array
+    void* bindings[2] = {d_input, d_output};
 
-    // Copy data from device to host for the output
-    std::vector<float> outputHostData(outputSize / sizeof(float));
-    status = cudaMemcpy(outputHostData.data(), outputDevice,
-                        outputSize / sizeof(float), cudaMemcpyDeviceToHost);
-    if (status != cudaSuccess)
-        throw std::runtime_error(
-            "Failed to copy data from device to host for output.");
-
-    // Reshape the output into a 2D matrix (same size as input image)
-    int outputHeight = 256; // Height of the output mask (same as input image)
-    int outputWidth = 256;  // Width of the output mask (same as input image)
-    std::vector<float> outputMask(outputHeight * outputWidth);
-
-    // Copy the output data into the mask
-    for (int i = 0; i < outputHeight * outputWidth; ++i)
+    // Execute inference
+    bool status = context->executeV2(bindings);
+    if (!status)
     {
-        outputMask[i] =
-            outputHostData[i]; // Assuming outputHostData is flattened
+        std::cerr << "Error during inference execution" << std::endl;
+        cudaFree(d_input);
+        cudaFree(d_output);
+        delete context;
+        delete engine;
+        delete runtime;
+        return -1;
     }
 
-    std::cout << "Output buffer size: " << outputHostData.size() << std::endl;
+    // Allocate CPU memory for output
+    std::vector<float> output_data(outputSize / sizeof(float));
 
-    // Apply threshold to the mask (qualquer coisa acima do threshold e' mask,
-    // abaixo e' background)
-    // float threshold = 0.5f; // You can experiment with this value ->
-    //                         // experimentei, resultados muito semelhantes
-    // for (int i = 0; i < outputHeight * outputWidth; ++i)
-    // {
-    //     if (outputMask[i] >= threshold)
-    //     {
-    //         outputMask[i] = 1.0f; // Lane
-    //     }
-    //     else
-    //     {
-    //         outputMask[i] = 0.0f; // background
-    //     }
-    // }
+    // Copy output data from GPU to CPU
+    cudaMemcpy(output_data.data(), d_output, outputSize,
+               cudaMemcpyDeviceToHost);
 
-    // Convert the output mask to an OpenCV Mat
-    cv::Mat laneMask(outputHeight, outputWidth, CV_32F,
-                     outputMask.data()); // CV_32F for float
+    // Convert to image
+    int width = 256;
+    int height = 256;
+    cv::Mat output_image(height, width, CV_32FC1, output_data.data());
 
-    // Normalize the mask to [0, 255] (since OpenCV expects 8-bit or 32-bit)
-    cv::Mat displayMask;
-    laneMask.convertTo(displayMask, CV_8U,
-                       255.0); // Convert to 8-bit, 255 for white
+    // Try several operations and save the result
+    debugOutput(output_data, output_image);
 
-    // Save or display the mask
-    cv::imwrite("results/lane_mask.jpg", displayMask);
-
-    cudaFree(inputDevice);
-    cudaFree(outputDevice);
+    cudaFree(d_input);
+    cudaFree(d_output);
     delete context;
     delete engine;
     delete runtime;
-    std::cout << "Process completed" << std::endl;
+
     return 0;
 }

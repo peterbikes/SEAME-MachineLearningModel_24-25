@@ -15,3 +15,4 @@ class Logger : public nvinfer1::ILogger
 nvinfer1::ICudaEngine* createEngine(nvinfer1::IRuntime* runtime);
 void checkEngineSpecs(nvinfer1::ICudaEngine* engine);
 std::vector<float> loadImage(const std::string& img_path);
+void debugOutput(const std::vector<float>& output_data, cv::Mat& output_image);

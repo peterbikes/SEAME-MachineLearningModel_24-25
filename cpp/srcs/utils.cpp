@@ -79,6 +79,31 @@ void checkEngineSpecs(nvinfer1::ICudaEngine* engine)
     }
 }
 
+void debugOutput(const std::vector<float>& output_data, cv::Mat& output_image)
+{
+    // Normalize output to 0-255 range for visualization
+    cv::Mat display_output;
+    cv::normalize(output_image, display_output, 0, 255, cv::NORM_MINMAX,
+                  CV_8UC1);
+
+    cv::imwrite("results/output_image.jpg", display_output);
+    std::cout << "Output saved to results/output_image.jpg" << std::endl;
+    float min_val = *std::min_element(output_data.begin(), output_data.end());
+    float max_val = *std::max_element(output_data.begin(), output_data.end());
+    std::cout << "Output value range: " << min_val << " to " << max_val
+              << std::endl;
+
+    // Option 1: Try inverting the mask if that seems appropriate
+    cv::Mat inverted_output;
+    cv::bitwise_not(display_output, inverted_output);
+    cv::imwrite("results/inverted_output.jpg", inverted_output);
+
+    // Option 3: Try different threshold values
+    float threshold = 0.1;
+    cv::Mat thresholded_output = output_image > threshold;
+    cv::imwrite("results/thresholded_output.jpg", thresholded_output);
+}
+
 std::vector<float> loadImage(const std::string& image_path)
 {
     // IMAGE LOADING/RESIZING PART --> this is now a function
