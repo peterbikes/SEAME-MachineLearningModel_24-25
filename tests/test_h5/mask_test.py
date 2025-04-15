@@ -4,10 +4,10 @@ import cv2
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 
 # Load trained model
-model = tf.keras.models.load_model('unet_lane_detection_model.h5')
+model = tf.keras.models.load_model('../../unet_lane_detection_model.h5')
 
 # Load and preprocess image
-image_path = 'test_image.jpg'
+image_path = 'images/test_image.jpg'
 img_size = (256, 256)
 
 image = load_img(image_path, target_size=img_size)
@@ -21,6 +21,6 @@ predicted_mask = model.predict(image_array)[0]  # Remove batch dimension
 predicted_mask = (predicted_mask * 255).astype(np.uint8)
 
 # Save the mask
-cv2.imwrite('predicted_mask.png', predicted_mask)
+cv2.imwrite('results/predicted_mask.png', predicted_mask)
 
 print("Predicted mask saved as 'predicted_mask.png'")

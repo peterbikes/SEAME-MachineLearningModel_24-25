@@ -8,4 +8,5 @@ saved_model/
 latest_training_predictions/
 datasets/
 correct.engine
+tusimple_dl_set
 build
