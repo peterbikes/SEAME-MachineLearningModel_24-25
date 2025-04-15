@@ -9,6 +9,7 @@ def load_and_preprocess_image(image_path, target_size=(256, 256)):
     img = cv2.imread(image_path)
     if img is None:
         raise ValueError(f"Failed to load image: {image_path}")
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
     # Resize
     img_resized = cv2.resize(img, target_size)
@@ -23,14 +24,14 @@ def load_and_preprocess_image(image_path, target_size=(256, 256)):
 
 def run_inference(onnx_model_path, image_path):
     # Create output directory
-    os.makedirs("onnx_test_results", exist_ok=True)
+    os.makedirs("results", exist_ok=True)
     
     # Load and preprocess image
     original_img, resized_img, input_data = load_and_preprocess_image(image_path)
     
     # Save preprocessed image
-    cv2.imwrite("onnx_test_results/original.jpg", original_img)
-    cv2.imwrite("onnx_test_results/resized.jpg", resized_img)
+    cv2.imwrite("results/original.jpg", original_img)
+    cv2.imwrite("results/resized.jpg", resized_img)
     
     # Create ONNX Runtime session
     print(f"Running inference with ONNX model: {onnx_model_path}")
@@ -54,26 +55,26 @@ def run_inference(onnx_model_path, image_path):
     # 1. Direct output (normalized to 0-255)
     normalized_output = ((output_image - output_image.min()) / 
                          (output_image.max() - output_image.min()) * 255).astype(np.uint8)
-    cv2.imwrite("onnx_test_results/normalized_output.jpg", normalized_output)
+    cv2.imwrite("results/normalized_output.jpg", normalized_output)
     
     # 2. Inverted output
     inverted_output = 255 - normalized_output
-    cv2.imwrite("onnx_test_results/inverted_output.jpg", inverted_output)
+    cv2.imwrite("results/inverted_output.jpg", inverted_output)
     
     # 3. Thresholded output (try different thresholds)
     for threshold in [0.1, 0.2, 0.3]:
         threshold_value = threshold
         thresholded = (output_image > threshold_value).astype(np.uint8) * 255
-        cv2.imwrite(f"onnx_test_results/thresholded_{threshold}.jpg", thresholded)
+        cv2.imwrite(f"results/thresholded_{threshold}.jpg", thresholded)
     
     # 4. Apply sigmoid (in case it was lost in conversion)
     sigmoid_output = 1 / (1 + np.exp(-output_image))
     sigmoid_normalized = (sigmoid_output * 255).astype(np.uint8)
-    cv2.imwrite("onnx_test_results/sigmoid_output.jpg", sigmoid_normalized)
+    cv2.imwrite("results/sigmoid_output.jpg", sigmoid_normalized)
     
     # 5. Create heatmap visualization
     heatmap = cv2.applyColorMap(normalized_output, cv2.COLORMAP_JET)
-    cv2.imwrite("onnx_test_results/heatmap.jpg", heatmap)
+    cv2.imwrite("results/heatmap.jpg", heatmap)
     
     # 6. Overlay on original image
     overlay = cv2.addWeighted(
@@ -81,9 +82,9 @@ def run_inference(onnx_model_path, image_path):
         cv2.cvtColor(normalized_output, cv2.COLOR_GRAY2BGR), 0.3, 
         0
     )
-    cv2.imwrite("onnx_test_results/overlay.jpg", overlay)
+    cv2.imwrite("results/overlay.jpg", overlay)
     
-    print(f"Results saved to onnx_test_results directory")
+    print(f"Results saved to results directory")
     return output_image
 
 if __name__ == "__main__":

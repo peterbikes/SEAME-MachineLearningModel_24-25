@@ -2,11 +2,14 @@
 env/
 
 # model / datasets
+images
 unet_lane_detection_model.h5
 model.onnx
+*.onnx
 saved_model/
 latest_training_predictions/
 datasets/
 correct.engine
 tusimple_dl_set
 build
+results
