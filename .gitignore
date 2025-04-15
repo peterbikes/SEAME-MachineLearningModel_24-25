@@ -2,7 +2,6 @@
 env/
 
 # model / datasets
-images
 unet_lane_detection_model.h5
 model.onnx
 *.onnx
